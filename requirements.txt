@@ -1,0 +1,19 @@
+# Smart Grocery Budget Planner
+# Requirements and Environment Specification
+# =======================================================
+# This project was intentionally designed using Python's standard library
+# to ensure zero external dependency friction during college lab evaluations,
+# viva examinations, and demonstrations on fresh student/faculty PCs.
+
+# Minimum Python Version: Python 3.8+ (Tested up to Python 3.14+)
+
+# Standard Library Modules Utilized:
+# - tkinter (Desktop GUI presentation and dialogs)
+# - ttk (Themed widget styling, Treeview, Notebook, Progressbar)
+# - json (Persistent file storage)
+# - os (Filesystem checks)
+# - sys (CLI execution and system exit)
+# - unittest (Automated test suite)
+
+# Optional for virtual environment parity:
+# No third-party pip packages required. Standard Python install includes all components.

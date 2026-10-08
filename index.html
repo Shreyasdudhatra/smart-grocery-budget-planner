@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Grocery Budget Planner | Modern Web Dashboard</title>
+  <meta name="description" content="College Python Mini-Project: Smart Grocery Budget Planner with live expense tracking, budget alerts, and smart shopping recommendations.">
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="brand-icon">🛒</div>
+        <div>
+          <h1 class="brand-title">Smart Grocery Budget Planner</h1>
+          <p class="brand-subtitle">College Mini-Project • Real-Time Cost Tracking & Shopping Intelligence</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-save" class="btn btn-primary" title="Save current changes to grocery_data.json">
+          <span>💾</span> Save to JSON
+        </button>
+        <button id="btn-reset" class="btn btn-outline" title="Reset to standard sample data (₹5,000 & 6 items)">
+          <span>🔄</span> Reset Sample Data
+        </button>
+        <button id="btn-export-csv" class="btn btn-ghost" title="Download shopping list as CSV">
+          <span>📥</span> Export CSV
+        </button>
+      </div>
+    </header>
+
+    <!-- Dynamic Budget Alert Banner -->
+    <section id="alert-banner" class="alert-banner alert-safe">
+      <div class="alert-icon" id="alert-icon">✅</div>
+      <div class="alert-content">
+        <h4 id="alert-title" class="alert-title">Budget On Track</h4>
+        <p id="alert-message" class="alert-message">You have spent ₹1,450.00 of ₹5,000.00 (29.0% used). ₹3,550.00 remaining.</p>
+      </div>
+      <div class="alert-badge" id="alert-badge">SAFE</div>
+    </section>
+
+    <!-- KPI Summary Dashboard Cards -->
+    <section class="kpi-grid">
+      <!-- Card 1: Budget -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">TOTAL BUDGET</span>
+          <span class="kpi-icon-pill">💰</span>
+        </div>
+        <div class="kpi-value text-slate" id="kpi-budget">₹5,000.00</div>
+        <button class="kpi-action-link" id="btn-quick-budget">✏️ Change Budget</button>
+      </div>
+
+      <!-- Card 2: Spent -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">TOTAL SPENT</span>
+          <span class="kpi-icon-pill">🛒</span>
+        </div>
+        <div class="kpi-value text-blue" id="kpi-spent">₹1,450.00</div>
+        <div class="kpi-subtext" id="kpi-spent-sub">From all grocery items</div>
+      </div>
+
+      <!-- Card 3: Remaining / Over -->
+      <div class="kpi-card" id="card-remaining">
+        <div class="kpi-header">
+          <span class="kpi-label" id="kpi-remain-label">REMAINING BUDGET</span>
+          <span class="kpi-icon-pill" id="kpi-remain-icon">⚖️</span>
+        </div>
+        <div class="kpi-value text-emerald" id="kpi-remaining">₹3,550.00</div>
+        <div class="kpi-subtext" id="kpi-remaining-sub">Available balance</div>
+      </div>
+
+      <!-- Card 4: Used % & Progress -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">BUDGET USED</span>
+          <span class="kpi-icon-pill">📊</span>
+        </div>
+        <div class="kpi-value text-teal" id="kpi-percent">29.0%</div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="kpi-progress-bar" style="width: 29%;"></div>
+        </div>
+      </div>
+
+      <!-- Card 5: Highest Category -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">TOP CATEGORY</span>
+          <span class="kpi-icon-pill">🏷️</span>
+        </div>
+        <div class="kpi-value text-purple" id="kpi-top-category">Vegetables</div>
+        <div class="kpi-subtext" id="kpi-top-category-amount">₹400.00 spent</div>
+      </div>
+
+      <!-- Card 6: Total Items -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">TOTAL ITEMS</span>
+          <span class="kpi-icon-pill">📦</span>
+        </div>
+        <div class="kpi-value text-slate" id="kpi-items-count">6 items</div>
+        <div class="kpi-subtext" id="kpi-items-avg">Avg: ₹241.67 / item</div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Layout -->
+    <main class="main-layout">
+
+      <!-- Left Column: Forms -->
+      <aside class="sidebar-forms">
+
+        <!-- Card: Set Budget -->
+        <div class="card form-card">
+          <div class="card-header">
+            <h3 class="card-title">💵 Set Grocery Budget</h3>
+          </div>
+          <form id="form-budget" class="form-compact">
+            <div class="input-group">
+              <label for="input-budget">Budget Amount (₹)</label>
+              <div class="input-with-button">
+                <input type="number" id="input-budget" min="1" step="0.5" placeholder="e.g. 5000" required>
+                <button type="submit" class="btn btn-teal">Set Budget</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Card: Add / Edit Item -->
+        <div class="card form-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title" id="item-form-title">➕ Add Grocery Item</h3>
+              <p class="card-subtitle" id="item-form-mode">Mode: Adding new item</p>
+            </div>
+            <button type="button" id="btn-cancel-edit" class="btn btn-sm btn-ghost" style="display: none;">Cancel</button>
+          </div>
+
+          <form id="form-item" class="form-body">
+            <input type="hidden" id="input-edit-id" value="">
+
+            <!-- Item Name -->
+            <div class="form-group">
+              <label for="input-item-name">Item Name <span class="required">*</span></label>
+              <input type="text" id="input-item-name" placeholder="e.g., Rice, Milk, Apples" required autocomplete="off">
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+              <label for="select-category">Category <span class="required">*</span></label>
+              <select id="select-category" required>
+                <option value="Fruits">🍎 Fruits</option>
+                <option value="Vegetables">🥦 Vegetables</option>
+                <option value="Dairy">🥛 Dairy</option>
+                <option value="Grains">🌾 Grains</option>
+                <option value="Snacks">🍪 Snacks</option>
+                <option value="Beverages">🧃 Beverages</option>
+                <option value="Household">🧼 Household</option>
+                <option value="Other">📦 Other</option>
+              </select>
+            </div>
+
+            <!-- Quantity & Unit -->
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="input-quantity">Quantity <span class="required">*</span></label>
+                <input type="number" id="input-quantity" min="0.01" step="any" placeholder="1" required value="1">
+              </div>
+
+              <div class="form-group">
+                <label for="select-unit">Unit</label>
+                <select id="select-unit">
+                  <option value="units">units</option>
+                  <option value="kg">kg</option>
+                  <option value="g">g</option>
+                  <option value="packets">packets</option>
+                  <option value="litres">litres</option>
+                  <option value="bottles">bottles</option>
+                  <option value="boxes">boxes</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Price Per Unit -->
+            <div class="form-group">
+              <label for="input-price">Price per Unit (₹) <span class="required">*</span></label>
+              <input type="number" id="input-price" min="0.01" step="any" placeholder="e.g., 70" required>
+            </div>
+
+            <!-- Live Subtotal Calculation -->
+            <div class="subtotal-preview">
+              <span>Estimated Item Total:</span>
+              <strong id="preview-subtotal">₹0.00</strong>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="form-actions">
+              <button type="submit" id="btn-submit-item" class="btn btn-teal btn-block">➕ Add Item</button>
+              <button type="button" id="btn-clear-form" class="btn btn-outline btn-block">🧹 Clear Form</button>
+            </div>
+          </form>
+        </div>
+
+      </aside>
+
+      <!-- Right Column: Tabbed Views -->
+      <section class="main-content">
+
+        <!-- Tabs Navigation Bar -->
+        <nav class="tabs-nav">
+          <button class="tab-btn active" data-tab="tab-list">
+            📋 Grocery Shopping List
+            <span class="tab-badge" id="tab-items-badge">6</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-categories">
+            📊 Category Breakdown
+          </button>
+          <button class="tab-btn" data-tab="tab-suggestions">
+            💡 Smart Suggestions
+            <span class="tab-badge tab-badge-highlight" id="tab-suggestions-badge">!</span>
+          </button>
+        </nav>
+
+        <!-- Tab 1: Grocery Table -->
+        <div id="tab-list" class="tab-pane active">
+          
+          <!-- Search & Filter Bar -->
+          <div class="table-toolbar">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="input-search" placeholder="Search by item name or category...">
+              <button id="btn-clear-search" class="search-clear-btn" title="Clear search">✕</button>
+            </div>
+
+            <div class="toolbar-stats">
+              <span id="table-showing-text">Showing 6 items</span>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="table-container">
+            <table class="grocery-table" id="grocery-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Item Name</th>
+                  <th>Category</th>
+                  <th>Quantity & Unit</th>
+                  <th class="text-right">Price / Unit</th>
+                  <th class="text-right">Total Price</th>
+                  <th class="text-center" style="width: 140px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+
+            <!-- Empty Search State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+              <div class="empty-icon">🔍</div>
+              <h4>No matching grocery items found</h4>
+              <p>Try searching for a different keyword or add a new item from the left panel.</p>
+            </div>
+          </div>
+
+          <!-- Table Footer Summary -->
+          <div class="table-footer">
+            <div class="table-footer-left">
+              <span>💡 Click <strong>Edit</strong> to modify quantity/price or <strong>Delete</strong> to remove an item.</span>
+            </div>
+            <div class="table-footer-right">
+              <span>List Subtotal: <strong id="table-subtotal-val">₹1,450.00</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Category Breakdown -->
+        <div id="tab-categories" class="tab-pane">
+          <div class="card-inner-header">
+            <div>
+              <h3>Category-Wise Spending Analysis</h3>
+              <p>Breakdown of expenses across 8 standard grocery categories.</p>
+            </div>
+            <div class="top-category-pill" id="cat-top-pill">
+              🏆 Highest Category: <strong>Vegetables (₹400.00)</strong>
+            </div>
+          </div>
+
+          <div class="category-grid" id="category-cards-grid">
+            <!-- Dynamically populated category cards with bars -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Smart Shopping Suggestions -->
+        <div id="tab-suggestions" class="tab-pane">
+          <div class="card-inner-header">
+            <div>
+              <h3>Smart Shopping Recommendations & Insights</h3>
+              <p>Rule-based advice to optimize your spending and prevent budget overruns.</p>
+            </div>
+          </div>
+
+          <div class="suggestions-list" id="suggestions-list-container">
+            <!-- Dynamically rendered suggestion cards -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span>Smart Grocery Budget Planner • College Subject Mini Project</span>
+        <span class="footer-divider">|</span>
+        <span id="footer-data-status">Storage: Local JSON Synced</span>
+      </div>
+      <div class="footer-right">
+        <span>Backend: Python 3.8+ • Frontend: Modern Web Interface</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-icon">🗑️</div>
+      <h3 class="modal-title">Delete Grocery Item?</h3>
+      <p class="modal-desc" id="delete-modal-text">Are you sure you want to remove this item from your shopping list?</p>
+      <div class="modal-actions">
+        <button id="btn-cancel-delete" class="btn btn-outline">Cancel</button>
+        <button id="btn-confirm-delete" class="btn btn-danger">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
